@@ -1,11 +1,50 @@
 <!DOCTYPE html>
-<html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js">
+<!--<![endif]-->
 
 <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>
+        Mapa
+    </title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="">
+</head>
 
-    <script type="text/javascript">
-        var ctx = null;
-        var gameMap = [
+<body>
+    <!--[if lt IE 7]>
+            <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+    <canvas id="game" width="400" height="400"></canvas>
+    <script>
+        let ctx = null;
+        const tileW = 40,
+            tileH = 40;
+        const mapW = 10,
+            mapH = 10;
+
+        let currentSecond = 0,
+            frameCount = 0,
+            framesLastSecond = 0;
+        lastFrameTime = 0;
+
+        let keysDown = {
+            37: false,
+            38: false,
+            39: false,
+            40: false
+            //strzalki
+        }
+
+        let player = new Character();
+
+        let gameMap = [
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 1, 1, 1, 0, 1, 1, 1, 1, 0,
             0, 1, 0, 0, 0, 1, 0, 0, 0, 0,
@@ -17,23 +56,7 @@
             0, 1, 1, 1, 0, 1, 1, 1, 1, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         ];
-        var tileW = 40,
-            tileH = 40;
-        var mapW = 10,
-            mapH = 10;
-        var currentSecond = 0,
-            frameCount = 0,
-            framesLastSecond = 0,
-            lastFrameTime = 0;
 
-        var keysDown = {
-            37: false,
-            38: false,
-            39: false,
-            40: false
-        };
-
-        var player = new Character();
 
         function Character() {
             this.tileFrom = [1, 1];
@@ -43,13 +66,15 @@
             this.position = [45, 45];
             this.delayMove = 700;
         }
+
+        //klasa character metoda placeAt która przemieszcza postać na kafelkę która jest celem
         Character.prototype.placeAt = function (x, y) {
             this.tileFrom = [x, y];
             this.tileTo = [x, y];
-            this.position = [((tileW * x) + ((tileW - this.dimensions[0]) / 2)),
-                ((tileH * y) + ((tileH - this.dimensions[1]) / 2))
-            ];
-        };
+            this.position = [((tileW * x) + (tileW - this.dimensions[0]) / 2), ((tileH * y) + (tileH - this
+                .dimensions[1]) / 2)]
+        }
+
         Character.prototype.processMovement = function (t) {
             if (this.tileFrom[0] == this.tileTo[0] && this.tileFrom[1] == this.tileTo[1]) {
                 return false;
@@ -62,30 +87,28 @@
                 this.position[1] = (this.tileFrom[1] * tileH) + ((tileH - this.dimensions[1]) / 2);
 
                 if (this.tileTo[0] != this.tileFrom[0]) {
-                    var diff = (tileW / this.delayMove) * (t - this.timeMoved);
+                    let diff = (tileW / this.delayMove) * (t - this.timeMoved);
                     this.position[0] += (this.tileTo[0] < this.tileFrom[0] ? 0 - diff : diff);
                 }
                 if (this.tileTo[1] != this.tileFrom[1]) {
-                    var diff = (tileH / this.delayMove) * (t - this.timeMoved);
+                    let diff = (tileH / this.delayMove) * (t - this.timeMoved);
                     this.position[1] += (this.tileTo[1] < this.tileFrom[1] ? 0 - diff : diff);
                 }
-
                 this.position[0] = Math.round(this.position[0]);
                 this.position[1] = Math.round(this.position[1]);
             }
 
             return true;
-        }
+        };
 
         function toIndex(x, y) {
             return ((y * mapW) + x);
         }
 
         window.onload = function () {
-            ctx = document.getElementById('game').getContext("2d");
+            ctx = document.getElementById('game').getContext('2d');
             requestAnimationFrame(drawGame);
             ctx.font = "bold 10pt sans-serif";
-
             window.addEventListener("keydown", function (e) {
                 if (e.keyCode >= 37 && e.keyCode <= 40) {
                     keysDown[e.keyCode] = true;
@@ -95,18 +118,18 @@
                 if (e.keyCode >= 37 && e.keyCode <= 40) {
                     keysDown[e.keyCode] = false;
                 }
-            });
+            })
         };
 
         function drawGame() {
             if (ctx == null) {
                 return;
-            }
+            };
 
-            var currentFrameTime = Date.now();
-            var timeElapsed = currentFrameTime - lastFrameTime;
+            let currentFrameTime = Date.now();
+            let timeElapsed = currentFrameTime - lastFrameTime;
 
-            var sec = Math.floor(Date.now() / 1000);
+            let sec = Math.floor(Date.now() / 1000);
             if (sec != currentSecond) {
                 currentSecond = sec;
                 framesLastSecond = frameCount;
@@ -116,6 +139,15 @@
             }
 
             if (!player.processMovement(currentFrameTime)) {
+                //37 - left, 
+                //38 - up, 
+                //39 - right,
+                //40 - down
+
+                if (player.tileFrom[0] != player.tileTo[0] || player.tileFrom[1] != player.tileTo[1]) {
+                    player.timeMoved = currentFrameTime;
+                }
+
                 if (keysDown[38] && player.tileFrom[1] > 0 && gameMap[toIndex(player.tileFrom[0], player.tileFrom[1] -
                         1)] == 1) {
                     player.tileTo[1] -= 1;
@@ -129,29 +161,28 @@
                         player.tileFrom[1])] == 1) {
                     player.tileTo[0] += 1;
                 }
-
                 if (player.tileFrom[0] != player.tileTo[0] || player.tileFrom[1] != player.tileTo[1]) {
                     player.timeMoved = currentFrameTime;
                 }
             }
 
-            for (var y = 0; y < mapH; ++y) {
-                for (var x = 0; x < mapW; ++x) {
+            for (let y = 0; y < mapH; ++y) {
+                for (let x = 0; x < mapW; ++x) {
                     switch (gameMap[((y * mapW) + x)]) {
                         case 0:
-                            ctx.fillStyle = "#685b48";
+                            ctx.fillStyle = "#999999";
                             break;
                         default:
-                            ctx.fillStyle = "#5aa457";
+                            ctx.fillStyle = "#eeeeee";
                     }
 
                     ctx.fillRect(x * tileW, y * tileH, tileW, tileH);
                 }
+
             }
 
             ctx.fillStyle = "#0000ff";
-            ctx.fillRect(player.position[0], player.position[1],
-                player.dimensions[0], player.dimensions[1]);
+            ctx.fillRect(player.position[0], player.position[1], player.dimensions[0], player.dimensions[1]);
 
             ctx.fillStyle = "#ff0000";
             ctx.fillText("FPS: " + framesLastSecond, 10, 20);
@@ -160,13 +191,6 @@
             requestAnimationFrame(drawGame);
         }
     </script>
-
-</head>
-
-<body>
-
-    <canvas id="game" width="400" height="400"></canvas>
-
 </body>
 
 </html>
