@@ -21,29 +21,8 @@
     <!--[if lt IE 7]>
             <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
-    <canvas id="game" width="400" height="400"></canvas>
     <script>
         let ctx = null;
-        const tileW = 40,
-            tileH = 40;
-        const mapW = 20,
-            mapH = 20;
-
-        let currentSecond = 0,
-            frameCount = 0,
-            framesLastSecond = 0;
-        lastFrameTime = 0;
-
-        let keysDown = {
-            37: false,
-            38: false,
-            39: false,
-            40: false
-            //strzalki
-        }
-
-        let player = new Character();
-
         const gameMap = [
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0,
@@ -68,13 +47,78 @@
         ];
 
 
+        const tileW = 40,
+            tileH = 40;
+        const mapW = 20,
+            mapH = 20;
+
+        let currentSecond = 0,
+            frameCount = 0,
+            framesLastSecond = 0;
+        lastFrameTime = 0;
+
+        let keysDown = {
+            37: false,
+            38: false,
+            39: false,
+            40: false
+            //strzalki
+        }
+
+        //to keeptrack visible area of the screen
+        const viewport = {
+            screen: [0, 0],
+            //startTile to lewa górna komórka, która będzie widoczna w wycinku, analogicznie endTile jako dolna prawa
+            startTile: [0, 0],
+            endTile: [0, 0],
+            //offset to jak dużo od środka będzie rysowane
+            offset: [0, 0],
+            update: function (px, py) {
+                this.offset[0] = Math.floor((this.screen[0] / 2) - px);
+                this.offset[1] = Math.floor((this.screen[1] / 2) - py);
+
+                let tile = [
+                    Math.floor(px / tileW),
+                    Math.floor(py / tileH)
+                ];
+
+                this.startTile[0] = tile[0] - 1 - Math.ceil((this.screen[0] / 2) / tileW);
+                this.startTile[1] = tile[1] - 1 - Math.ceil((this.screen[1] / 2) / tileH);
+
+                if (this.startTile[0] < 0) {
+                    this.startTile[0] = 0;
+                }
+                if (this.startTile[1] < 0) {
+                    this.startTile[1] = 0;
+                }
+
+                this.endTile[0] = tile[0] + 1 + Math.ceil((this.screen[0] / 2) / tileW);
+                this.endTile[1] = tile[1] + 1 + Math.ceil((this.screen[1] / 2) / tileH);
+
+                if (this.endTile[0] >= mapW) {
+                    this.endTile[0] = mapW - 1;
+                }
+                if (this.endTile[1] >= mapH) {
+                    this.endTile[1] = mapH - 1;
+                }
+                //warunki są do ogarnięcia krańców mapy
+
+
+            }
+        }
+
+
+
+
+        let player = new Character();
+
         function Character() {
             this.tileFrom = [1, 1];
             this.tileTo = [1, 1];
             this.timeMoved = 0;
             this.dimensions = [30, 30];
             this.position = [45, 45];
-            this.delayMove = 700;
+            this.delayMove = 350;
         }
 
         //klasa character metoda placeAt która przemieszcza postać na kafelkę która jest celem
@@ -128,7 +172,11 @@
                 if (e.keyCode >= 37 && e.keyCode <= 40) {
                     keysDown[e.keyCode] = false;
                 }
-            })
+            });
+
+            viewport.screen = [document.getElementById('game').width,
+                document.getElementById('game').height
+            ];
         };
 
         function drawGame() {
@@ -154,9 +202,6 @@
                 //39 - right,
                 //40 - down
 
-                if (player.tileFrom[0] != player.tileTo[0] || player.tileFrom[1] != player.tileTo[1]) {
-                    player.timeMoved = currentFrameTime;
-                }
 
                 if (keysDown[38] && player.tileFrom[1] > 0 && gameMap[toIndex(player.tileFrom[0], player.tileFrom[1] -
                         1)] == 1) {
@@ -176,8 +221,17 @@
                 }
             }
 
-            for (let y = 0; y < mapH; ++y) {
-                for (let x = 0; x < mapW; ++x) {
+
+            viewport.update(player.position[0] + (player.dimensions[0] / 2),
+                player.position[1] + (player.dimensions[1] / 2));
+
+            ctx.fillStyle = "#000000";
+            ctx.fillRect(0, 0, viewport.screen[0], viewport.screen[1]);
+
+
+            for (let y = viewport.startTile[1]; y <= viewport.endTile[1]; ++y) {
+
+                for (let x = viewport.startTile[0]; x <= viewport.endTile[0]; ++x) {
                     switch (gameMap[((y * mapW) + x)]) {
                         case 0:
                             ctx.fillStyle = "#999999";
@@ -186,13 +240,14 @@
                             ctx.fillStyle = "#eeeeee";
                     }
 
-                    ctx.fillRect(x * tileW, y * tileH, tileW, tileH);
+                    ctx.fillRect(viewport.offset[0] + x * tileW, viewport.offset[1] + y * tileH, tileW, tileH);
                 }
 
             }
 
             ctx.fillStyle = "#0000ff";
-            ctx.fillRect(player.position[0], player.position[1], player.dimensions[0], player.dimensions[1]);
+            ctx.fillRect(viewport.offset[0] + player.position[0], viewport.offset[1] + player.position[1], player
+                .dimensions[0], player.dimensions[1]);
 
             ctx.fillStyle = "#ff0000";
             ctx.fillText("FPS: " + framesLastSecond, 10, 20);
@@ -201,6 +256,8 @@
             requestAnimationFrame(drawGame);
         }
     </script>
+
+    <canvas id="game" width="400" height="400"></canvas>
 </body>
 
 </html>
