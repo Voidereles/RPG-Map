@@ -134,10 +134,10 @@ function Character() {
     this.delayMove = 350;
     this.direction = directions.up;
     this.sprites = {};
-    this.sprites[directions.up] = [{ x: 31, y: 120, w: 40, h: 40 }];
-    this.sprites[directions.right] = [{ x: 31, y: 150, w: 40, h: 40 }];
-    this.sprites[directions.down] = [{ x: 31, y: 180, w: 40, h: 40 }];
-    this.sprites[directions.left] = [{ x: 31, y: 217, w: 33, h: 30 }];
+    this.sprites[directions.up] = [{ x: 31, y: 120, w: 30, h: 33 }];
+    this.sprites[directions.right] = [{ x: 31, y: 154, w: 33, h: 30 }];
+    this.sprites[directions.down] = [{ x: 31, y: 180, w: 30, h: 33 }];
+    this.sprites[directions.left] = [{ x: 31, y: 215, w: 33, h: 30 }];
 
 }
 
