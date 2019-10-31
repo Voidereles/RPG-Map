@@ -45,11 +45,11 @@ const floorTypes = {
 }
 
 const tileTypes = {
-    0: { colour: "#685b48", floor: floorTypes.solid, sprite: [{ x: 0, y: 0, w: 40, h: 40 }] },
-    1: { colour: "#5aa457", floor: floorTypes.path, sprite: [{ x: 40, y: 0, w: 40, h: 40 }] },
-    2: { colour: "#e8bd7a", floor: floorTypes.path, sprite: [{ x: 80, y: 0, w: 40, h: 40 }] },
-    3: { colour: "#286625", floor: floorTypes.solid, sprite: [{ x: 200, y: 0, w: 40, h: 40 }] },
-    4: { colour: "#678fd9", floor: floorTypes.water, sprite: [{ x: 160, y: 0, w: 40, h: 40 }] }
+    0: { color: "#685b48", floor: floorTypes.solid, sprite: [{ x: 0, y: 0, w: 40, h: 40 }] },
+    1: { color: "#5aa457", floor: floorTypes.path, sprite: [{ x: 40, y: 0, w: 40, h: 40 }] },
+    2: { color: "#e8bd7a", floor: floorTypes.path, sprite: [{ x: 80, y: 0, w: 40, h: 40 }] },
+    3: { color: "#286625", floor: floorTypes.solid, sprite: [{ x: 200, y: 0, w: 40, h: 40 }] },
+    4: { color: "#678fd9", floor: floorTypes.water, sprite: [{ x: 160, y: 0, w: 40, h: 40 }] }
 };
 
 const directions = {
@@ -132,13 +132,12 @@ function Character() {
     this.dimensions = [30, 30];
     this.position = [45, 45];
     this.delayMove = 350;
-
     this.direction = directions.up;
     this.sprites = {};
-    this.sprites[directions.up] = [{ x: 0, y: 120, w: 30, h: 30 }];
-    this.sprites[directions.right] = [{ x: 0, y: 150, w: 30, h: 30 }];
-    this.sprites[directions.down] = [{ x: 0, y: 180, w: 30, h: 30 }];
-    this.sprites[directions.left] = [{ x: 0, y: 210, w: 30, h: 30 }];
+    this.sprites[directions.up] = [{ x: 31, y: 120, w: 40, h: 40 }];
+    this.sprites[directions.right] = [{ x: 31, y: 150, w: 40, h: 40 }];
+    this.sprites[directions.down] = [{ x: 31, y: 180, w: 40, h: 40 }];
+    this.sprites[directions.left] = [{ x: 31, y: 217, w: 33, h: 30 }];
 
 }
 
@@ -317,17 +316,26 @@ function drawGame() {
             var tile = tileTypes[gameMap[toIndex(x, y)]];
             ctx.drawImage(tileset,
                 tile.sprite[0].x, tile.sprite[0].y, tile.sprite[0].w, tile.sprite[0].h,
+
                 viewport.offset[0] + (x * tileW), viewport.offset[1] + (y * tileH),
                 tileW, tileH);
         }
 
     }
 
+
     var sprite = player.sprites[player.direction];
     ctx.drawImage(tileset,
         sprite[0].x, sprite[0].y, sprite[0].w, sprite[0].h,
+
         viewport.offset[0] + player.position[0], viewport.offset[1] + player.position[1],
         player.dimensions[0], player.dimensions[1]);
+
+    // ctx.drawImage(tileset,
+    //     80, 40, 40, 40,
+
+    //     viewport.offset[0] + player.position[0], viewport.offset[1] + player.position[1],
+    //     player.dimensions[0], player.dimensions[1]);
 
 
     ctx.fillStyle = "#ff0000";
