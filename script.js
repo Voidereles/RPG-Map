@@ -16,7 +16,7 @@ const gameMap = [
     0, 1, 2, 2, 2, 2, 1, 2, 1, 1, 4, 1, 1, 1, 1, 1, 3, 2, 1, 0,
     0, 1, 2, 3, 3, 2, 1, 2, 1, 1, 4, 4, 4, 4, 4, 4, 4, 2, 4, 0,
     0, 1, 2, 3, 3, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 0,
-    0, 1, 2, 3, 4, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2, 1, 0,
+    0, 1, 2, 3, 3, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 0, 1, 2, 1, 0,
     0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0,
     0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0,
     0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0,
@@ -36,6 +36,8 @@ const gameMap = [
 
 ];
 
+let tileset = null, tilesetURL = "tileset.png", tilesetLoaded = false;
+
 const floorTypes = {
     solid: 0,
     path: 1,
@@ -43,28 +45,19 @@ const floorTypes = {
 }
 
 const tileTypes = {
-    0: {
-        color: "#685b48",
-        floor: floorTypes.solid
-    },
-    1: {
-        color: "#5aa457",
-        floor: floorTypes.path
-    },
-    2: {
-        color: "#e8bd7a",
-        floor: floorTypes.path
-    },
-    3: {
-        color: "#111111",
-        floor: floorTypes.solid
-    },
-    4: {
-        color: "#678fd9",
-        floor: floorTypes.water
-    }
+    0: { colour: "#685b48", floor: floorTypes.solid, sprite: [{ x: 0, y: 0, w: 40, h: 40 }] },
+    1: { colour: "#5aa457", floor: floorTypes.path, sprite: [{ x: 40, y: 0, w: 40, h: 40 }] },
+    2: { colour: "#e8bd7a", floor: floorTypes.path, sprite: [{ x: 80, y: 0, w: 40, h: 40 }] },
+    3: { colour: "#286625", floor: floorTypes.solid, sprite: [{ x: 200, y: 0, w: 40, h: 40 }] },
+    4: { colour: "#678fd9", floor: floorTypes.water, sprite: [{ x: 160, y: 0, w: 40, h: 40 }] }
 };
 
+const directions = {
+    up: 0,
+    right: 1,
+    down: 2,
+    left: 3
+}
 
 
 const tileW = 40,
@@ -139,6 +132,14 @@ function Character() {
     this.dimensions = [30, 30];
     this.position = [45, 45];
     this.delayMove = 350;
+
+    this.direction = directions.up;
+    this.sprites = {};
+    this.sprites[directions.up] = [{ x: 0, y: 120, w: 30, h: 30 }];
+    this.sprites[directions.right] = [{ x: 0, y: 150, w: 30, h: 30 }];
+    this.sprites[directions.down] = [{ x: 0, y: 180, w: 30, h: 30 }];
+    this.sprites[directions.left] = [{ x: 0, y: 210, w: 30, h: 30 }];
+
 }
 
 //klasa character metoda placeAt która przemieszcza postać na kafelkę która jest celem
@@ -201,18 +202,22 @@ Character.prototype.canMoveRight = function () {
 Character.prototype.moveLeft = function (t) {
     this.tileTo[0] -= 1;
     this.timeMoved = t;
+    this.direction = directions.left;
 };
 Character.prototype.moveRight = function (t) {
     this.tileTo[0] += 1;
     this.timeMoved = t;
+    this.direction = directions.right;
 };
 Character.prototype.moveUp = function (t) {
     this.tileTo[1] -= 1;
     this.timeMoved = t;
+    this.direction = directions.up;
 };
 Character.prototype.moveDown = function (t) {
     this.tileTo[1] += 1;
     this.timeMoved = t;
+    this.direction = directions.down;
 };
 /* #endregion */
 
@@ -239,14 +244,22 @@ window.onload = function () {
     viewport.screen = [document.getElementById('game').width,
     document.getElementById('game').height
     ];
+
+    tileset = new Image();
+    tileset.onerror = function () {
+        ctx = null;
+        alert("Failed loading tileset.");
+    };
+    tileset.onload = function () { tilesetLoaded = true; };
+    tileset.src = tilesetURL;
 };
 
 function drawGame() {
-    if (ctx == null) {
-        return;
-    };
 
-    let currentFrameTime = Date.now();
+    if (ctx == null) { return; }
+    if (!tilesetLoaded) { requestAnimationFrame(drawGame); return; }
+
+    var currentFrameTime = Date.now();
     let timeElapsed = currentFrameTime - lastFrameTime;
 
     let sec = Math.floor(Date.now() / 1000);
@@ -298,16 +311,24 @@ function drawGame() {
             //         ctx.fillStyle = "#eeeeee";
             // }
 
-            ctx.fillStyle = tileTypes[gameMap[toIndex(x, y)]].color;
+            // ctx.fillStyle = tileTypes[gameMap[toIndex(x, y)]].color;
 
-            ctx.fillRect(viewport.offset[0] + x * tileW, viewport.offset[1] + y * tileH, tileW, tileH);
+            // ctx.fillRect(viewport.offset[0] + x * tileW, viewport.offset[1] + y * tileH, tileW, tileH);
+            var tile = tileTypes[gameMap[toIndex(x, y)]];
+            ctx.drawImage(tileset,
+                tile.sprite[0].x, tile.sprite[0].y, tile.sprite[0].w, tile.sprite[0].h,
+                viewport.offset[0] + (x * tileW), viewport.offset[1] + (y * tileH),
+                tileW, tileH);
         }
 
     }
 
-    ctx.fillStyle = "#0000ff";
-    ctx.fillRect(viewport.offset[0] + player.position[0], viewport.offset[1] + player.position[1], player
-        .dimensions[0], player.dimensions[1]);
+    var sprite = player.sprites[player.direction];
+    ctx.drawImage(tileset,
+        sprite[0].x, sprite[0].y, sprite[0].w, sprite[0].h,
+        viewport.offset[0] + player.position[0], viewport.offset[1] + player.position[1],
+        player.dimensions[0], player.dimensions[1]);
+
 
     ctx.fillStyle = "#ff0000";
     ctx.fillText("FPS: " + framesLastSecond, 10, 20);
