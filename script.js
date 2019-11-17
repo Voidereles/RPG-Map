@@ -68,7 +68,7 @@ const directions = {
 
 let gameTime = 0;
 let gameSpeeds = [
-    { name: "Normal", mult: 5 }
+    { name: "Normal", mult: 1 }
     //pomysl, zeby mozna bylo przyspieszac lub stopować grę
 ];
 let currentSpeed = 0;
