@@ -1,0 +1,15 @@
+body {
+    background-image: url('7iBrDK.jpg');
+}
+
+section {
+    margin: auto;
+    position: relative;
+    text-align: center;
+}
+
+p,
+div {
+    color: yellow;
+    text-shadow: 1px 1px 5px #000000;
+}
